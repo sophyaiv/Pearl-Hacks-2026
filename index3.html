@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Churro's Bakery 🧁</title>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cream: #f5e6d3;
+            --tan: #e8c99a;
+            --gold: #d4a96a;
+            --brown: #8B4513;
+            --dark-brown: #4a2c0a;
+            --orange: #f4831f;
+            --white: #fffaf5;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--cream);
+            font-family: 'Nunito', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: -100px; right: -100px;
+            width: 400px; height: 400px;
+            background: var(--tan);
+            border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+            opacity: 0.4;
+            z-index: 0;
+        }
+        body::after {
+            content: '';
+            position: fixed;
+            bottom: -80px; left: -80px;
+            width: 350px; height: 350px;
+            background: var(--gold);
+            border-radius: 40% 60% 30% 70% / 60% 40% 60% 40%;
+            opacity: 0.3;
+            z-index: 0;
+        }
+
+        /* ===== BEAR SVG CHARACTERS ===== */
+        .bear-svg { overflow: visible; }
+
+        /* ===== INTRO SCREEN ===== */
+        #intro-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--cream);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            gap: 16px;
+        }
+
+        #intro-screen h1 {
+            font-family: 'Baloo 2', cursive;
+            font-size: 3em;
+            color: var(--dark-brown);
+            text-align: center;
+        }
+
+        #intro-screen p {
+            color: var(--brown);
+            font-size: 1.1em;
+        }
+
+        .intro-characters {
+            display: flex;
+            gap: 50px;
+            align-items: flex-end;
+            margin: 5px 0;
+        }
+
+        .character-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .character-name {
+            font-family: 'Baloo 2', cursive;
+            font-weight: 800;
+            color: var(--dark-brown);
+            font-size: 1em;
+        }
+
+        #intro-screen input {
+            padding: 12px 20px;
+            font-size: 1.1em;
+            font-family: 'Nunito', sans-serif;
+            border: 3px solid var(--brown);
+            border-radius: 15px;
+            background: var(--white);
+            color: var(--dark-brown);
+            text-align: center;
+            outline: none;
+            width: 280px;
+        }
+
+        #intro-screen input:focus {
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(244,131,31,0.2);
+        }
+
+        .start-btn {
+            background: var(--brown);
+            color: white;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.2em;
+            font-family: 'Baloo 2', cursive;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 var(--dark-brown);
+        }
+
+        .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--dark-brown); }
+        .start-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--dark-brown); }
+
+        /* ===== GAME SCREEN ===== */
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 16px;
+            position: relative;
+            z-index: 1;
+            gap: 12px;
+        }
+        #game-screen.active { display: flex; }
+
+        h1.game-title {
+            font-family: 'Baloo 2', cursive;
+            font-size: 2.5em;
+            color: var(--dark-brown);
+        }
+
+        .characters-row {
+            display: flex;
+            gap: 40px;
+            align-items: flex-end;
+        }
+
+        .lulo-hidden { opacity: 0; transition: opacity 0.6s; }
+        .lulo-visible { opacity: 1; }
+
+        /* ===== STATS ===== */
+        #stats {
+            background: var(--gold);
+            border-radius: 15px;
+            padding: 10px 20px;
+            width: 100%;
+            max-width: 560px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--dark-brown);
+            font-size: 0.95em;
+            box-shadow: 0 3px 0 #b8894a;
+        }
+
+        .stat-item {
+            background: rgba(255,255,255,0.4);
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+
+        .goal-label {
+            font-size: 0.85em;
+            color: var(--brown);
+            font-weight: 700;
+            align-self: flex-start;
+        }
+
+        .money-goal {
+            width: 100%;
+            max-width: 560px;
+            background: var(--tan);
+            border-radius: 10px;
+            height: 16px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .money-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #f4831f, #e8c99a);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        /* ===== STORY BOX ===== */
+        #story-box {
+            background: var(--white);
+            border: 3px solid var(--tan);
+            border-radius: 20px;
+            padding: 16px 22px;
+            width: 100%;
+            max-width: 560px;
+            min-height: 75px;
+            font-size: 1.05em;
+            color: var(--dark-brown);
+            line-height: 1.5;
+            box-shadow: 0 3px 0 var(--tan);
+            transition: opacity 0.15s;
+        }
+
+        /* ===== BAKING ANIMATION ===== */
+        #baking-animation {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 560px;
+            background: var(--white);
+            border: 3px solid var(--tan);
+            border-radius: 20px;
+            padding: 18px;
+            box-shadow: 0 3px 0 var(--tan);
+        }
+        #baking-animation.active { display: flex; }
+
+        .baking-stage { display: none; flex-direction: column; align-items: center; gap: 6px; animation: fadeIn 0.4s ease; }
+        .baking-stage.active { display: flex; }
+        .baking-emoji { font-size: 2.8em; }
+        .baking-label { font-family: 'Baloo 2', cursive; font-size: 1em; color: var(--brown); }
+        .baking-progress { width: 180px; height: 8px; background: var(--tan); border-radius: 5px; overflow: hidden; }
+        .baking-progress-bar { height: 100%; background: var(--brown); border-radius: 5px; width: 0%; transition: width 0.8s ease; }
+
+        /* ===== BUTTONS ===== */
+        .buttons-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .btn {
+            background: var(--brown);
+            color: white;
+            border: none;
+            padding: 11px 18px;
+            font-size: 0.95em;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 4px 0 var(--dark-brown);
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--dark-brown); background: #a0521a; }
+        .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--dark-brown); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: 0 2px 0 var(--dark-brown); }
+        .btn-lulo { background: var(--orange); box-shadow: 0 4px 0 #c4600a; }
+        .btn-lulo:hover { background: #e07010; box-shadow: 0 6px 0 #c4600a; }
+        .btn-lulo:active { box-shadow: 0 1px 0 #c4600a; }
+
+        /* ===== OVERLAYS ===== */
+        .overlay-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(74,44,10,0.85);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease;
+        }
+        .overlay-screen.active { display: flex; }
+
+        .overlay-box {
+            background: var(--cream);
+            border-radius: 25px;
+            padding: 40px 50px;
+            text-align: center;
+            max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        .overlay-box h2 { font-family: 'Baloo 2', cursive; font-size: 2.2em; color: var(--dark-brown); margin-bottom: 10px; }
+        .overlay-box p { color: var(--brown); font-size: 1.05em; margin-bottom: 20px; }
+
+        /* ===== LULO EVENT ===== */
+        #lulo-event {
+            display: none;
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background: var(--white);
+            border: 3px solid var(--orange);
+            border-radius: 20px;
+            padding: 14px 18px;
+            max-width: 240px;
+            z-index: 50;
+            animation: slideIn 0.4s ease;
+            box-shadow: 0 5px 20px rgba(244,131,31,0.3);
+        }
+        #lulo-event.active { display: block; }
+        #lulo-event p { font-family: 'Baloo 2', cursive; color: var(--dark-brown); font-size: 0.9em; }
+        #lulo-event .lulo-event-btn {
+            margin-top: 8px;
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            width: 100%;
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-14px); }
+            70% { transform: translateY(-6px); }
+        }
+        .bounce { animation: bounce 0.5s ease; }
+    </style>
+</head>
+<body>
+
+    <!-- INTRO SCREEN -->
+    <div id="intro-screen">
+        <h1>🧁 Churro's Bakery</h1>
+        <p>Meet the bakers who need YOUR help!</p>
+        <div class="intro-characters">
+            <div class="character-card">
+                <!-- Churro - brown bear with chef hat and blue bow -->
+                <svg width="110" height="140" viewBox="0 0 110 140" class="bear-svg">
+                    <!-- Chef hat -->
+                    <ellipse cx="55" cy="22" rx="24" ry="18" fill="#fffaf5"/>
+                    <rect x="31" y="34" width="48" height="10" rx="5" fill="#6db3d4"/>
+                    <!-- Spiral ears -->
+                    <circle cx="24" cy="55" r="14" fill="#c8864a"/>
+                    <circle cx="24" cy="55" r="8" fill="#a06030"/>
+                    <circle cx="24" cy="55" r="4" fill="#7a4020"/>
+                    <circle cx="86" cy="55" r="14" fill="#c8864a"/>
+                    <circle cx="86" cy="55" r="8" fill="#a06030"/>
+                    <circle cx="86" cy="55" r="4" fill="#7a4020"/>
+                    <!-- Head -->
+                    <ellipse cx="55" cy="70" rx="38" ry="36" fill="#c8864a"/>
+                    <!-- Muzzle -->
+                    <ellipse cx="55" cy="84" rx="18" ry="14" fill="#e8c89a"/>
+                    <!-- Blush -->
+                    <ellipse cx="34" cy="80" rx="9" ry="6" fill="#e07070" opacity="0.35"/>
+                    <ellipse cx="76" cy="80" rx="9" ry="6" fill="#e07070" opacity="0.35"/>
+                    <!-- Eyes -->
+                    <circle cx="42" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="44" cy="65" r="2" fill="white"/>
+                    <circle cx="68" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="70" cy="65" r="2" fill="white"/>
+                    <!-- Nose -->
+                    <ellipse cx="55" cy="84" rx="5" ry="3.5" fill="#7a4020"/>
+                    <!-- Body -->
+                    <ellipse cx="55" cy="120" rx="32" ry="22" fill="#fffaf5"/>
+                    <!-- Blue bow tie -->
+                    <ellipse cx="46" cy="108" rx="8" ry="6" fill="#6db3d4" transform="rotate(-15 46 108)"/>
+                    <ellipse cx="64" cy="108" rx="8" ry="6" fill="#6db3d4" transform="rotate(15 64 108)"/>
+                    <circle cx="55" cy="108" r="5" fill="#388e3c"/>
+                </svg>
+                <span class="character-name">Churro</span>
+            </div>
+            <div class="character-card">
+                <!-- Lulo - orange bear, same style as Churro but orange -->
+                <svg width="110" height="140" viewBox="0 0 110 140" class="bear-svg">
+                    <!-- No hat for Lulo -->
+                    <!-- Spiral ears -->
+                    <circle cx="24" cy="55" r="14" fill="#c4600a"/>
+                    <circle cx="24" cy="55" r="8" fill="#a04a08"/>
+                    <circle cx="24" cy="55" r="4" fill="#7a3005"/>
+                    <circle cx="86" cy="55" r="14" fill="#c4600a"/>
+                    <circle cx="86" cy="55" r="8" fill="#a04a08"/>
+                    <circle cx="86" cy="55" r="4" fill="#7a3005"/>
+                    <!-- Head -->
+                    <ellipse cx="55" cy="70" rx="38" ry="36" fill="#f4831f"/>
+                    <!-- Muzzle -->
+                    <ellipse cx="55" cy="84" rx="18" ry="14" fill="#ffd4a3"/>
+                    <!-- Blush -->
+                    <ellipse cx="34" cy="80" rx="9" ry="6" fill="#ff9090" opacity="0.35"/>
+                    <ellipse cx="76" cy="80" rx="9" ry="6" fill="#ff9090" opacity="0.35"/>
+                    <!-- Eyes -->
+                    <circle cx="42" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="44" cy="65" r="2" fill="white"/>
+                    <circle cx="68" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="70" cy="65" r="2" fill="white"/>
+                    <!-- Nose -->
+                    <ellipse cx="55" cy="84" rx="5" ry="3.5" fill="#7a3005"/>
+                    <!-- Body -->
+                    <ellipse cx="55" cy="120" rx="32" ry="22" fill="#f4831f"/>
+                    <!-- Little stripe detail -->
+                    <rect x="40" y="112" width="30" height="4" rx="2" fill="#c4600a" opacity="0.4"/>
+                    <rect x="36" y="120" width="38" height="4" rx="2" fill="#c4600a" opacity="0.4"/>
+                    <!-- Bow on top of head -->
+                    <ellipse cx="46" cy="38" rx="8" ry="6" fill="#4caf50" transform="rotate(-15 46 38)"/>
+                    <ellipse cx="64" cy="38" rx="8" ry="6" fill="#4caf50" transform="rotate(15 64 38)"/>
+                    <circle cx="55" cy="38" r="5" fill="#388e3c"/>
+                </svg>
+                <span class="character-name">Lulo</span>
+            </div>
+        </div>
+        <p>What's your name, baker?</p>
+        <input type="text" id="player-name-input" placeholder="Enter your name..." maxlength="20"/>
+        <button class="start-btn" onclick="startGame()">Start Baking! 🧁</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="game-screen">
+        <h1 class="game-title">🧁 Churro's Bakery</h1>
+
+        <div class="characters-row">
+            <div class="character-card" id="churro-game">
+                <svg width="100" height="128" viewBox="0 0 110 140" class="bear-svg" id="churro-anim">
+                    <ellipse cx="55" cy="22" rx="24" ry="18" fill="#fffaf5"/>
+                    <rect x="31" y="34" width="48" height="10" rx="5" fill="#6db3d4"/>
+                    <circle cx="24" cy="55" r="14" fill="#c8864a"/>
+                    <circle cx="24" cy="55" r="8" fill="#a06030"/>
+                    <circle cx="24" cy="55" r="4" fill="#7a4020"/>
+                    <circle cx="86" cy="55" r="14" fill="#c8864a"/>
+                    <circle cx="86" cy="55" r="8" fill="#a06030"/>
+                    <circle cx="86" cy="55" r="4" fill="#7a4020"/>
+                    <ellipse cx="55" cy="70" rx="38" ry="36" fill="#c8864a"/>
+                    <ellipse cx="55" cy="84" rx="18" ry="14" fill="#e8c89a"/>
+                    <ellipse cx="34" cy="80" rx="9" ry="6" fill="#e07070" opacity="0.35"/>
+                    <ellipse cx="76" cy="80" rx="9" ry="6" fill="#e07070" opacity="0.35"/>
+                    <circle cx="42" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="44" cy="65" r="2" fill="white"/>
+                    <circle cx="68" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="70" cy="65" r="2" fill="white"/>
+                    <ellipse cx="55" cy="84" rx="5" ry="3.5" fill="#7a4020"/>
+                    <ellipse cx="55" cy="120" rx="32" ry="22" fill="#fffaf5"/>
+                    <ellipse cx="46" cy="108" rx="8" ry="6" fill="#6db3d4" transform="rotate(-15 46 108)"/>
+                    <ellipse cx="64" cy="108" rx="8" ry="6" fill="#6db3d4" transform="rotate(15 64 108)"/>
+                    <circle cx="55" cy="108" r="5" fill="#388e3c"/>
+                </svg>
+                <span class="character-name">Churro</span>
+            </div>
+
+            <div class="character-card lulo-hidden" id="lulo-game">
+                <svg width="100" height="128" viewBox="0 0 110 140" class="bear-svg" id="lulo-anim">
+                    <circle cx="24" cy="55" r="14" fill="#c4600a"/>
+                    <circle cx="24" cy="55" r="8" fill="#a04a08"/>
+                    <circle cx="24" cy="55" r="4" fill="#7a3005"/>
+                    <circle cx="86" cy="55" r="14" fill="#c4600a"/>
+                    <circle cx="86" cy="55" r="8" fill="#a04a08"/>
+                    <circle cx="86" cy="55" r="4" fill="#7a3005"/>
+                    <ellipse cx="55" cy="70" rx="38" ry="36" fill="#f4831f"/>
+                    <ellipse cx="55" cy="84" rx="18" ry="14" fill="#ffd4a3"/>
+                    <ellipse cx="34" cy="80" rx="9" ry="6" fill="#ff9090" opacity="0.35"/>
+                    <ellipse cx="76" cy="80" rx="9" ry="6" fill="#ff9090" opacity="0.35"/>
+                    <circle cx="42" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="44" cy="65" r="2" fill="white"/>
+                    <circle cx="68" cy="67" r="7" fill="#1a0a02"/>
+                    <circle cx="70" cy="65" r="2" fill="white"/>
+                    <ellipse cx="55" cy="84" rx="5" ry="3.5" fill="#7a3005"/>
+                    <ellipse cx="55" cy="120" rx="32" ry="22" fill="#f4831f"/>
+                    <rect x="40" y="112" width="30" height="4" rx="2" fill="#c4600a" opacity="0.4"/>
+                    <rect x="36" y="120" width="38" height="4" rx="2" fill="#c4600a" opacity="0.4"/>
+                    <!-- Bow on top of head -->
+                    <ellipse cx="46" cy="38" rx="8" ry="6" fill="#4caf50" transform="rotate(-15 46 38)"/>
+                    <ellipse cx="64" cy="38" rx="8" ry="6" fill="#4caf50" transform="rotate(15 64 38)"/>
+                    <circle cx="55" cy="38" r="5" fill="#388e3c"/>
+                </svg>
+                <span class="character-name">Lulo</span>
+            </div>
+        </div>
+
+        <div id="stats">
+            <span class="stat-item">💰 $<span id="money">20</span></span>
+            <span class="stat-item">🌾 <span id="flour">5</span></span>
+            <span class="stat-item">🍬 <span id="sugar">5</span></span>
+            <span class="stat-item">🥚 <span id="eggs">5</span></span>
+            <span class="stat-item">🧁 <span id="cupcakes">0</span></span>
+        </div>
+
+        <span class="goal-label">Goal: $50 🎯</span>
+        <div class="money-goal">
+            <div class="money-bar" id="money-bar" style="width:40%"></div>
+        </div>
+
+        <div id="story-box">Churro says: "Welcome to the bakery! Let's earn $50 together! 🧁"</div>
+
+        <div id="baking-animation">
+            <div class="baking-stage active" id="stage-bowl">
+                <div class="baking-emoji">🥣</div>
+                <div class="baking-label">Adding ingredients to bowl...</div>
+                <div class="baking-progress"><div class="baking-progress-bar" id="bar1"></div></div>
+            </div>
+            <div class="baking-stage" id="stage-mix">
+                <div class="baking-emoji">🌀</div>
+                <div class="baking-label">Churro is mixing the batter!</div>
+                <div class="baking-progress"><div class="baking-progress-bar" id="bar2"></div></div>
+            </div>
+            <div class="baking-stage" id="stage-oven">
+                <div class="baking-emoji">🔥</div>
+                <div class="baking-label">Into the oven it goes!</div>
+                <div class="baking-progress"><div class="baking-progress-bar" id="bar3"></div></div>
+            </div>
+            <div class="baking-stage" id="stage-done">
+                <div class="baking-emoji">🧁</div>
+                <div class="baking-label">Fresh cupcake ready! ✨</div>
+            </div>
+        </div>
+
+        <div class="buttons-grid">
+            <button class="btn" id="btn-bake" onclick="bakeCupcakes()">🧁 Bake Cupcakes</button>
+            <button class="btn" id="btn-customer" onclick="helpCustomer()">🛍️ Help Customer</button>
+            <button class="btn" onclick="restock('flour')">🌾 Restock Flour</button>
+            <button class="btn" onclick="restock('sugar')">🍬 Restock Sugar</button>
+            <button class="btn" onclick="restock('eggs')">🥚 Restock Eggs</button>
+            <button class="btn btn-lulo" id="btn-lulo" onclick="callLulo()" style="display:none">🍊 Call Lulo!</button>
+        </div>
+    </div>
+
+    <!-- WIN SCREEN -->
+    <div class="overlay-screen" id="win-screen">
+        <div class="overlay-box">
+            <h2>🎉 You Won!</h2>
+            <p>Churro and Lulo are SO proud! You earned $50 and ran the best bakery ever! 🧁🍊</p>
+            <button class="start-btn" onclick="restartGame()">Play Again!</button>
+        </div>
+    </div>
+
+    <!-- GAME OVER SCREEN -->
+    <div class="overlay-screen" id="gameover-screen">
+        <div class="overlay-box">
+            <h2>😢 Oh No!</h2>
+            <p>The bakery ran out of money! But Lulo says you can try again! 🍊</p>
+            <button class="start-btn" onclick="restartGame()">Try Again!</button>
+        </div>
+    </div>
+
+    <!-- LULO EVENT POPUP -->
+    <div id="lulo-event">
+        <p id="lulo-event-text">🍊 Lulo appears with a surprise!</p>
+        <button class="lulo-event-btn" onclick="acceptLuloHelp()">Accept Lulo's Help! 🍊</button>
+    </div>
+
+    <script>
+        let money = 20;
+        let inventory = { flour: 5, sugar: 5, eggs: 5, cupcakes: 0 };
+        const CUPCAKE_PRICE = 5;
+        const RESTOCK_PRICE = 3;
+        const WIN_GOAL = 50;
+        let playerName = '';
+        let actionCount = 0;
+        let luloUnlocked = false;
+        let luloEventActive = false;
+        let isBaking = false;
+
+        function startGame() {
+            const input = document.getElementById('player-name-input').value.trim();
+            playerName = input || 'Baker';
+            document.getElementById('intro-screen').style.display = 'none';
+            document.getElementById('game-screen').classList.add('active');
+            setMessage(`Churro says: "Welcome, ${playerName}! Let's bake our way to $50! 🧁"`);
+            updateStats();
+        }
+
+        function updateStats() {
+            document.getElementById('money').textContent = money;
+            document.getElementById('flour').textContent = inventory.flour;
+            document.getElementById('sugar').textContent = inventory.sugar;
+            document.getElementById('eggs').textContent = inventory.eggs;
+            document.getElementById('cupcakes').textContent = inventory.cupcakes;
+            const pct = Math.min((money / WIN_GOAL) * 100, 100);
+            document.getElementById('money-bar').style.width = pct + '%';
+
+            if (actionCount >= 5 && !luloUnlocked) {
+                luloUnlocked = true;
+                document.getElementById('btn-lulo').style.display = 'inline-block';
+                const luloEl = document.getElementById('lulo-game');
+                luloEl.classList.remove('lulo-hidden');
+                luloEl.classList.add('lulo-visible');
+                animateLulo();
+                playSound('lulo');
+                setMessage("🍊 Lulo the Baking Apprentice arrives! 'I want to learn how to bake! Can I help?'");
+            }
+
+            if (money >= WIN_GOAL) {
+                playSound('win');
+                setTimeout(() => document.getElementById('win-screen').classList.add('active'), 300);
+            }
+            if (money <= 0 && inventory.cupcakes === 0) {
+                setTimeout(() => document.getElementById('gameover-screen').classList.add('active'), 300);
+            }
+        }
+
+        function setMessage(msg) {
+            const box = document.getElementById('story-box');
+            box.style.opacity = '0';
+            setTimeout(() => { box.textContent = msg; box.style.opacity = '1'; }, 150);
+        }
+
+        function animateChurro() {
+            const el = document.getElementById('churro-anim');
+            el.classList.remove('bounce');
+            void el.offsetWidth;
+            el.classList.add('bounce');
+        }
+
+        function animateLulo() {
+            const el = document.getElementById('lulo-anim');
+            el.classList.remove('bounce');
+            void el.offsetWidth;
+            el.classList.add('bounce');
+        }
+
+        async function bakeCupcakes() {
+            if (isBaking) return;
+            if (inventory.flour >= 1 && inventory.sugar >= 1 && inventory.eggs >= 1) {
+                isBaking = true;
+                disableButtons(true);
+                document.getElementById('story-box').style.display = 'none';
+                const bakingDiv = document.getElementById('baking-animation');
+                bakingDiv.classList.add('active');
+
+                await showStage('stage-bowl', 'bar1', 900);
+                await showStage('stage-mix', 'bar2', 900);
+                animateChurro();
+                await showStage('stage-oven', 'bar3', 1000);
+                playSound('bake');
+                showStageFinal('stage-done');
+                await delay(700);
+
+                bakingDiv.classList.remove('active');
+                resetStages();
+                document.getElementById('story-box').style.display = 'block';
+
+                inventory.flour -= 1;
+                inventory.sugar -= 1;
+                inventory.eggs -= 1;
+                inventory.cupcakes += 1;
+                if (luloUnlocked) {
+                    setMessage("Churro says: '🧁 Fresh cupcake out of the oven! Lulo helped mix the batter!'");
+                } else {
+                    setMessage("Churro says: '🧁 Fresh cupcake out of the oven! It smells amazing!'");
+                };
+                animateChurro();
+                actionCount++;
+                updateStats();
+                isBaking = false;
+                disableButtons(false);
+
+                if (luloUnlocked && Math.random() < 0.3 && !luloEventActive) {
+                    setTimeout(triggerLuloEvent, 1000);
+                }
+            } else {
+                setMessage("Lulo says: '😿 Uh oh! Not enough ingredients! Restock first!'");
+                animateChurro();
+                actionCount++;
+                updateStats();
+            }
+        }
+
+        function showStage(stageId, barId, duration) {
+            return new Promise(resolve => {
+                document.querySelectorAll('.baking-stage').forEach(s => s.classList.remove('active'));
+                document.getElementById(stageId).classList.add('active');
+                const bar = document.getElementById(barId);
+                if (bar) setTimeout(() => { bar.style.width = '100%'; }, 50);
+                setTimeout(resolve, duration);
+            });
+        }
+
+        function showStageFinal(stageId) {
+            document.querySelectorAll('.baking-stage').forEach(s => s.classList.remove('active'));
+            document.getElementById(stageId).classList.add('active');
+        }
+
+        function resetStages() {
+            document.querySelectorAll('.baking-stage').forEach(s => s.classList.remove('active'));
+            document.getElementById('stage-bowl').classList.add('active');
+            document.querySelectorAll('.baking-progress-bar').forEach(b => b.style.width = '0%');
+        }
+
+        function delay(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
+        function disableButtons(disabled) {
+            document.querySelectorAll('.btn').forEach(b => b.disabled = disabled);
+        }
+
+        function helpCustomer() {
+            if (inventory.cupcakes > 0) {
+                inventory.cupcakes -= 1;
+                money += CUPCAKE_PRICE;
+                playSound('sell');
+                if (luloUnlocked) {
+                    setMessage(`Churro says: '🎉 We sold a cupcake for $${CUPCAKE_PRICE}! Lulo did a happy dance!'`);
+                } else {
+                    setMessage(`Churro says: '🎉 We sold a cupcake for $${CUPCAKE_PRICE}! Ka-ching!'`);
+                }
+                animateChurro();
+            } else {
+                setMessage("Churro says: '😅 No cupcakes to sell! Time to bake more!'");
+            }
+            actionCount++;
+            updateStats();
+        }
+
+        function restock(ingredient) {
+            if (money < RESTOCK_PRICE) {
+                setMessage("Churro says: '😟 Not enough money! Sell more cupcakes first!'");
+            } else {
+                money -= RESTOCK_PRICE;
+                inventory[ingredient] += 1;
+                playSound('restock');
+                if (luloUnlocked) {
+                    setMessage(`Lulo says: '🍊 Yay! I restocked ${ingredient}! Cost $${RESTOCK_PRICE}!'`);
+                    animateLulo();
+                } else {
+                    setMessage(`Churro says: '✅ Restocked ${ingredient}! Cost $${RESTOCK_PRICE}!'`);
+                    animateChurro();
+                }
+            }
+            actionCount++;
+            updateStats();
+        }
+
+        function triggerLuloEvent() {
+            if (luloEventActive) return;
+            luloEventActive = true;
+            const events = [
+                { text: '🍊 Lulo found extra flour! Accept it?', ingredient: 'flour' },
+                { text: '🍊 Lulo brought surprise sugar! Accept?', ingredient: 'sugar' },
+                { text: '🍊 Lulo found eggs from a neighbor! Accept?', ingredient: 'eggs' },
+            ];
+            const event = events[Math.floor(Math.random() * events.length)];
+            document.getElementById('lulo-event-text').textContent = event.text;
+            document.getElementById('lulo-event').dataset.ingredient = event.ingredient;
+            document.getElementById('lulo-event').classList.add('active');
+            animateLulo();
+        }
+
+        function acceptLuloHelp() {
+            const ingredient = document.getElementById('lulo-event').dataset.ingredient;
+            inventory[ingredient] += 2;
+            document.getElementById('lulo-event').classList.remove('active');
+            luloEventActive = false;
+            setMessage(`Lulo says: '🍊 I brought 2 extra ${ingredient}s! Let\'s keep baking!'`);
+            animateLulo();
+            updateStats();
+        }
+
+        function callLulo() {
+            if (!luloEventActive) triggerLuloEvent();
+        }
+
+        function restartGame() {
+            money = 20; inventory = { flour: 5, sugar: 5, eggs: 5, cupcakes: 0 };
+            actionCount = 0; luloUnlocked = false; luloEventActive = false; isBaking = false;
+            document.getElementById('win-screen').classList.remove('active');
+            document.getElementById('gameover-screen').classList.remove('active');
+            document.getElementById('btn-lulo').style.display = 'none';
+            document.getElementById('lulo-game').classList.remove('lulo-visible');
+            document.getElementById('lulo-game').classList.add('lulo-hidden');
+            document.getElementById('lulo-event').classList.remove('active');
+            document.getElementById('player-name-input').value = '';
+            document.getElementById('intro-screen').style.display = 'flex';
+            document.getElementById('game-screen').classList.remove('active');
+            updateStats();
+        }
+
+        document.getElementById('player-name-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') startGame();
+        });
+
+        // ===== SOUND EFFECTS =====
+        let audioCtx;
+
+        function getAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        function playSound(type) {
+            const audioCtx = getAudio();
+            const o = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            o.connect(g);
+            g.connect(audioCtx.destination);
+
+            if (type === 'sell') {
+                o.type = 'sine';
+                o.frequency.setValueAtTime(520, audioCtx.currentTime);
+                o.frequency.setValueAtTime(660, audioCtx.currentTime + 0.1);
+                o.frequency.setValueAtTime(780, audioCtx.currentTime + 0.2);
+                g.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+                o.start(); o.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'bake') {
+                // gentle warm oven chime
+                o.type = 'sine';
+                o.frequency.setValueAtTime(440, audioCtx.currentTime);
+                o.frequency.setValueAtTime(550, audioCtx.currentTime + 0.15);
+                o.frequency.setValueAtTime(330, audioCtx.currentTime + 0.3);
+                g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+                o.start(); o.stop(audioCtx.currentTime + 0.6);
+            } else if (type === 'restock') {
+                o.type = 'sine';
+                o.frequency.setValueAtTime(300, audioCtx.currentTime);
+                o.frequency.setValueAtTime(400, audioCtx.currentTime + 0.05);
+                g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                o.start(); o.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'lulo') {
+                [440, 550, 660, 880].forEach((freq, i) => {
+                    const o2 = audioCtx.createOscillator();
+                    const g2 = audioCtx.createGain();
+                    o2.connect(g2); g2.connect(audioCtx.destination);
+                    o2.type = 'sine';
+                    o2.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.12);
+                    g2.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.12);
+                    g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.12 + 0.15);
+                    o2.start(audioCtx.currentTime + i * 0.12);
+                    o2.stop(audioCtx.currentTime + i * 0.12 + 0.15);
+                });
+            } else if (type === 'win') {
+                [520, 660, 780, 1040].forEach((freq, i) => {
+                    const o2 = audioCtx.createOscillator();
+                    const g2 = audioCtx.createGain();
+                    o2.connect(g2); g2.connect(audioCtx.destination);
+                    o2.type = 'sine';
+                    o2.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.15);
+                    g2.gain.setValueAtTime(0.25, audioCtx.currentTime + i * 0.15);
+                    g2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + i * 0.15 + 0.3);
+                    o2.start(audioCtx.currentTime + i * 0.15);
+                    o2.stop(audioCtx.currentTime + i * 0.15 + 0.3);
+                });
+            }
+        }
+
+        updateStats();
+    </script>
+</body>
+</html>
+
